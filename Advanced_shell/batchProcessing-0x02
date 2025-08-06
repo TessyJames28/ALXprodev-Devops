@@ -14,13 +14,12 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-name_list=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+name_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 
 # loop through and retrieve url for the names on the list
 for name in "${name_list[@]}";
 do
-    # convert name to lowercase and retrieve the URL
-    name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+    # Process each name and fetch its data
     echo "Fetching data for $name..."
     pokemon_url=$(echo "$pokemon_data" | jq -r --arg name "$name" '.results[] | select(.name == $name) | .url')
     
