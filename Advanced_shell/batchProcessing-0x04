@@ -12,6 +12,8 @@ ERROR_LOG="errors.txt"
 # names of Pokémon to fetch
 name_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon") 
 
+pids=() # store process IDs
+
 # Function to fetch Pokémon data
 fetch_pokemon_data() {
     local name="$1"
@@ -33,9 +35,20 @@ fetch_pokemon_data() {
 for name in "${name_list[@]}"; do
     # Start a background process for each Pokémon
     fetch_pokemon_data "$name" &
+    pids+=($!) # Store the PID of the background process
+    sleep 1 # Sleep to avoid hitting API rate limits
 done
 
+# Show all backgorund jobs
+echo "Running background jobs: ${pids[@]}"
+jobs
+
+# Kill a specific job if needed
+# kill ${pids[0]} # Uncomment to kill the first job
+
 # Wait for all background processes to finish
-wait
+for pid in "${pids[@]}"; do
+    wait $pid
+done
 
 echo "All Pokémon data fetched. Check $TARGET_DIR for files and $ERROR_LOG for any errors."
