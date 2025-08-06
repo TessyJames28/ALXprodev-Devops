@@ -1,0 +1,39 @@
+#!/bin/bash
+# Create a report that summarizes data for multiple Pokémon.
+
+# Get the directory of my script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Target directory where Pokeman data are stored
+TARGET_DIR="$SCRIPT_DIR/pokemon_data"
+
+# Ensure dir exists
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Directory $TARGET_DIR does not exist."
+    exit 1
+fi
+
+echo "Name,Height (m), Weight (kg)" > pokemon_report.csv
+# Loop through each JSON file in the target directory
+for file in $TARGET_DIR/*.json; do
+    # Check if the file exists and is a regular file
+    if [ -f "$file" ]; then
+        # Extract data from the file
+        name=$(jq -r ".name" "$file")
+        height=$(jq -r ".height" "$file")
+        weight=$(jq -r ".weight" "$file")
+
+        # Capitablise the first letter in name
+        name=$(echo "$name" | sed "s/.*/\u&/")
+
+        # Convert height and weight to meters and kg respectively
+        formatted_height=$(echo $height | awk '{printf "%.1f", $1 /10}')
+        formatted_weight=$(echo $weight | awk '{printf "%.1f", $1 /10}')
+
+        # store the data in a csv file
+        echo "$name,$formatted_height,$formatted_weight" >> pokemon_report.csv
+    else
+        echo "File $file does not exist or is not a regular file."
+    fi
+
+done    
