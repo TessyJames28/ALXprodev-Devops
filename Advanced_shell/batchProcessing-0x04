@@ -1,0 +1,41 @@
+#!/bin/bash
+# Speed up data retrieval using parallel processing.
+
+# Base data
+BASE_URL="https://pokeapi.co/api/v2/pokemon/"
+TARGET_DIR="pokemon_data"
+mkdir -p "$TARGET_DIR"
+ERROR_LOG="errors.txt"
+
+: > "$ERROR_LOG" # Clear the error log
+
+# names of Pokémon to fetch
+name_list=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon") 
+
+# Function to fetch Pokémon data
+fetch_pokemon_data() {
+    local name="$1"
+    
+    echo "Fetching data for $name..."
+    local response=$(curl -s --fail "$BASE_URL$name")
+
+    # Check for network error
+    if [ $? -ne 0 ]; then
+        echo "Error fetching data for $name" >> "$ERROR_LOG"
+        return
+    fi
+
+    echo "$response" > "$TARGET_DIR/${name}.json"
+    echo "Saved data for $name to ${TARGET_DIR}/${name}.json ✅"
+}
+
+# main loop for parallel execution
+for name in "${name_list[@]}"; do
+    # Start a background process for each Pokémon
+    fetch_pokemon_data "$name" &
+done
+
+# Wait for all background processes to finish
+wait
+
+echo "All Pokémon data fetched. Check $TARGET_DIR for files and $ERROR_LOG for any errors."
