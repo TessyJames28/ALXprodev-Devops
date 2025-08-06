@@ -2,10 +2,36 @@
 
 url="https://pokeapi.co/api/v2/pokemon/"
 
-pokemon_data=$(curl -s "$url")
+# store error in
+error_log="errors.txt"
 
+# Get the list of Pokémon
+pokemon_data=$(curl -s --fail "$url")
+
+if [ $? -ne 0 ]; then
+    echo "Failed to fetch data from $url" > "$error_log"
+    exit 1
+fi
+
+# Extract an inner json file
 values=$(echo "$pokemon_data" | sed -n 's/.*{\(.*\)}/\1/p')
 
+# Extra the url
 pokemon_url=$(echo "$values" | grep -o '"url": *"[^"]*"' | cut -d'"' -f4)
-data=$(curl -s "$pokemon_url")
-echo $data
+
+# Check is data is empty and log it
+if [ -z "$pokemon_url" ]; then
+    echo "No Pokémon URL found in the data." >> "$error_log"
+    exit 1
+fi
+
+# Fetch the Pokémon data from the extracted URL
+data=$(curl -s --fail "$pokemon_url")
+
+if [ $? -ne 0 ]; then
+    echo "Failed to fetch Pokémon data from $pokemon_url" >> "$error_log"
+    exit 1
+fi
+
+# save to file
+echo $data > data.json
