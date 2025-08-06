@@ -21,6 +21,7 @@ for name in "${name_list[@]}";
 do
     # convert name to lowercase and retrieve the URL
     name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+    echo "Fetching data for $name..."
     pokemon_url=$(echo "$pokemon_data" | jq -r --arg name "$name" '.results[] | select(.name == $name) | .url')
     
     # Process each url and store in a separate file
@@ -33,9 +34,10 @@ do
         fi
 
         echo "$url_data" > "pokemon_data/${name}.json"
+        echo "Saved data to pokemon_data/${name}.json ✅"
     else
         echo "No data found for $name" >> "$error_log"
     fi
-    sleep 5
+    sleep 1
     
 done
