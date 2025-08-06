@@ -1,0 +1,41 @@
+#!/bin/bash
+# Automate the retrieval of data for multiple Pokémon and store it in separate files.
+
+pokemon_url="https://pokeapi.co/api/v2/pokemon/"
+mkdir -p pokemon_data
+error_log="errors.txt"
+
+# capture data from pokmon url
+pokemon_data=$(curl -s --fail "$pokemon_url")
+
+# Check for errors in the curl command
+if [ $? -ne 0 ]; then
+    echo "Error fetching data from $pokemon_url" >> "$error_log"
+    exit 1
+fi
+
+name_list=("Bulbasaur" "Ivysaur" "Venusaur" "Charmander" "Charmeleon")
+
+# loop through and retrieve url for the names on the list
+for name in "${name_list[@]}";
+do
+    # convert name to lowercase and retrieve the URL
+    name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+    pokemon_url=$(echo "$pokemon_data" | jq -r --arg name "$name" '.results[] | select(.name == $name) | .url')
+    
+    # Process each url and store in a separate file
+    if [ -n "$pokemon_url" ]; then
+        url_data=$(curl -s --fail "$pokemon_url")
+
+        if [ $? -ne 0 ]; then
+            echo "Error fetching data for $name from $pokemon_url" >> "$error_log"
+            continue
+        fi
+
+        echo "$url_data" > "pokemon_data/${name}.json"
+    else
+        echo "No data found for $name" >> "$error_log"
+    fi
+    sleep 5
+    
+done
