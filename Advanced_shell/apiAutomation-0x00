@@ -5,6 +5,7 @@ url="https://pokeapi.co/api/v2/pokemon/"
 pokemon_data=$(curl -s "$url")
 
 values=$(echo "$pokemon_data" | sed -n 's/.*{\(.*\)}/\1/p')
+
 pokemon_url=$(echo "$values" | grep -o '"url": *"[^"]*"' | cut -d'"' -f4)
 data=$(curl -s "$pokemon_url")
 echo $data
